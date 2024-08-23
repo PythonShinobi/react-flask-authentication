@@ -1,4 +1,3 @@
-// client/src/App.js
 import React, { memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
@@ -8,14 +7,15 @@ import Home from './home/Home';
 import Login from './login/Login';
 import Register from './register/Register';
 import PageNotFound from './404/PageNotFound';
+import Profile from './profile/Profile';
+import PrivateRoute from './PrivateRoute';
 
 // Memoized components
-const MemoizedComponents = {
-  Home: memo(Home),
-  Register: memo(Register),
-  Login: memo(Login),
-  PageNotFound: memo(PageNotFound),
-};
+const MemoizedHome = memo(Home);
+const MemoizedRegister = memo(Register);
+const MemoizedLogin = memo(Login);
+const MemoizedProfile = memo(Profile);
+const MemoizedPageNotFound = memo(PageNotFound);
 
 const App = () => {
   return (
@@ -23,15 +23,19 @@ const App = () => {
       <AuthProvider>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Routes>
-            <Route path='/' element={<MemoizedComponents.Home />} />
-            <Route path='/register' element={<MemoizedComponents.Register />} />
-            <Route path='/login' element={<MemoizedComponents.Login />} />
-            <Route path='*' element={<MemoizedComponents.PageNotFound />} />
-          </Routes>          
+            <Route path='/' element={<MemoizedHome />} />
+            <Route path='/register' element={<MemoizedRegister />} />
+            <Route path='/login' element={<MemoizedLogin />} />
+            <Route
+              path='/profile'
+              element={<PrivateRoute element={MemoizedProfile} />}
+            />
+            <Route path='*' element={<MemoizedPageNotFound />} />
+          </Routes>
         </div>
       </AuthProvider>
     </BrowserRouter>
   );
 };
 
-export default memo(App);
+export default App;

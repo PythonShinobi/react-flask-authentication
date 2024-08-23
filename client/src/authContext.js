@@ -8,7 +8,7 @@ const AuthContext = createContext();
 // Create the AuthProvider component.
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [error, setError] = useState(""); // State to store error messages
+  const [err, setErr] = useState(""); // State to store error messages
 
   // Log in a user.
   const login = async (username, password) => {
@@ -16,13 +16,15 @@ export const AuthProvider = ({ children }) => {
       const response = await apiClient.post('/api/login', { username, password });
       if (response.status === 200) {
         setUser(response.data);
-        setError(""); // Clear any previous errors
+        setErr(""); // Clear any previous errors
+        return response.status; // Return the status code
       } else {
         throw new Error(response.data.message || "Login failed.");
       }
     } catch (err) {
       console.error(`Login error: ${err.message}`);
-      setError(err.response?.data?.message || err.message || "An unexpected error occurred.");
+      setErr(err.response?.data?.message || err.message || "An unexpected error occurred.");
+      return err.response?.status || 500; // Return the error status code
     }
   };
 
@@ -32,25 +34,27 @@ export const AuthProvider = ({ children }) => {
       const response = await apiClient.post('/api/register', { username, email, password });
       if (response.status === 201) {
         setUser(response.data);
-        setError(""); // Clear any previous errors
+        setErr(""); // Clear any previous errors
+        return response.status; // Return the status code
       } else {
         throw new Error(response.data.message || "Registration failed.");
       }
     } catch (err) {
       console.error(`Registration error: ${err.message}`);
-      setError(err.response?.data?.message || err.message || "An unexpected error occurred.");
+      setErr(err.response?.data?.message || err.message || "An unexpected error occurred.");
+      return err.response?.status || 500; // Return the error status code
     }
   };
 
   // Log out a user
   const logout = async () => {
     try {
-      // Perform any logout-related actions if needed (e.g., clearing tokens)
+      await apiClient.get('/api/logout');  // Ensure this endpoint handles logout correctly
       setUser(null);
-      setError(""); // Clear any previous errors
+      setErr(""); // Clear any previous errors
     } catch (err) {
       console.error(`Logout error: ${err.message}`);
-      setError("An unexpected error occurred during logout.");
+      setErr("An unexpected error occurred during logout.");
     }
   };
 
@@ -58,7 +62,7 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = () => !!user;
 
   return (
-    <AuthContext.Provider value={{ user, error, login, register, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, err, login, register, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

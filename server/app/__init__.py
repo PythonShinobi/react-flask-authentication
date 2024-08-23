@@ -1,4 +1,3 @@
-import os
 import logging
 from logging.handlers import RotatingFileHandler
 from flask import Flask
@@ -14,19 +13,8 @@ migrate = Migrate()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 
-def create_app(config=Config):
-    # Set a writable instance path
-    instance_path = '/tmp/instance'
-    
-    # Ensure the writable path exists
-    if not os.path.exists(instance_path):
-        os.makedirs(instance_path)
-
-    flask_app = Flask(
-        __name__, 
-        instance_path=instance_path, 
-        instance_relative_config=True
-    )
+def create_app(config=Config):    
+    flask_app = Flask(__name__, instance_relative_config=True)
     flask_app.config.from_object(config)
 
     db.init_app(flask_app)

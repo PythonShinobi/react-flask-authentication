@@ -1,4 +1,5 @@
 import sqlalchemy
+from flask_migrate import upgrade
 
 from app import create_app, db
 from app.models import User
@@ -9,5 +10,10 @@ app = create_app()
 def make_shell_context():
     return {'sqlalchemy': sqlalchemy, 'db': db, 'User': User}
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+@app.before_request
+def apply_migrations():
+    with app.app_context():
+        upgrade()  # Apply migrations automatically
+
+if __name__ == "__main__":
+    app.run()

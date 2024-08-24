@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -13,8 +14,12 @@ class Config:
     FRONTEND_ENDPOINT = os.getenv("FRONTEND_ENDPOINT")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # API settings
-    ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+    # Session settings    
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    PERMANENT_SESSION_LIFETIME = timedelta(days=30)  # Set session lifetime to 1 minute
+    REMEMBER_COOKIE_SECURE = True  # Only send cookies over HTTPS
+    REMEMBER_COOKIE_HTTPONLY = True  # JavaScript cannot access the cookie
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)  # Set remember me cookie duration to 1 minute
 
 class TestConfig(Config):
     TESTING = True

@@ -8,7 +8,7 @@ import Navbar from "../navbar/Navbar";
 import Form from "../components/Form";
 
 const Register = () => {
-  const { register } = useAuth(); // Get the register function from AuthContext
+  const { register, err } = useAuth(); // Get the register and err function from AuthContext
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
@@ -16,27 +16,29 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    const username = e.target.username.value;
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const rpassword = e.target.rpassword.value;
+  
+    if (password !== rpassword) {
+      setError("The passwords don't match");
+      return;
+    }
+  
     try {
-      const username = e.target.username.value;
-      const email = e.target.email.value;
-      const password = e.target.password.value;
-      const rpassword = e.target.rpassword.value;
-
-      if (password !== rpassword) {
-        setError("The passwords don't match");
-        return;
+      const status = await register(username, email, password);
+  
+      if (status === 201) { // Check if the registration was successful
+        setSuccess("Registration successful!"); // Set success message
+        setError(""); // Clear any previous errors
+        setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
+      } else {
+        setError(err); // Set the error message immediately
       }
-
-      // Use the register function from AuthContext to register the user
-      await register(username, email, password);
-
-      setSuccess("Registration successful!"); // Set success message
-      setTimeout(() => { navigate("/login"); }, 1000); // Redirect after 1 second
-      setError(""); // Clear any previous errors
     } catch (error) {
       console.error("An unexpected error occurred:", error);
-      // Handle specific error messages from backend
       setError(error.response?.data?.message || error.message || "Unknown error occurred.");
     }
   };

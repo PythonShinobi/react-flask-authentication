@@ -8,8 +8,8 @@ import Navbar from "../navbar/Navbar";
 import Form from "../components/Form";
 
 const Login = () => {
-  const { login } = useAuth(); // Get the login function from AuthContext
-  const [success, setSuccess] = useState(""); // State variable for success message.
+  const { login, err } = useAuth(); // Get the login and err function from AuthContext
+  const [success, setSuccess] = useState(""); // State variable for success message
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
@@ -22,14 +22,17 @@ const Login = () => {
       const password = e.target.password.value;
 
       // Use the login function from AuthContext to log in
-      await login(username, password);
-
-      setSuccess("Login successful"); // Set success message.
-      setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
-      setError(""); // Clear any previous errors.
+      const status = await login(username, password);      
+      if (status === 200) {
+        setSuccess("Login successful"); // Set success message
+        setTimeout(() => { navigate("/"); }, 1000); // Redirect after 1 second
+        setError(""); // Clear any previous errors
+      } else {
+        setError(err);
+      }
     } catch (error) {
       console.error(`An unexpected error occurred: ${error.message}`);
-      setError(error.response?.data?.message || error.message); // Set error message state with the error message
+      setError(err || error.message);
     }
   };
 

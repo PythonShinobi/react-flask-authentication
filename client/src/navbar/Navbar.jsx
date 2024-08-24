@@ -12,7 +12,9 @@ import {
   Container,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+  useTheme,
+  useMediaQuery
 } from "@mui/material";
 import MenuIcon from '@mui/icons-material/Menu';
 import LoginIcon from '@mui/icons-material/Login';
@@ -23,15 +25,27 @@ import PersonIcon from '@mui/icons-material/Person';
 import "./Navbar.css";
 import { useAuth } from "../authContext.js";
 
-const Navbar = () => {
+const Navbar = () => {  
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { logout, isAuthenticated } = useAuth();
+  const [authenticated, setAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
+
+  const { logout } = useAuth();
   const navigate = useNavigate();
-  
-  // Debugging: Log authentication status
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Detect if screen size is small
+
+  // Check local storage for user session
   useEffect(() => {
-    console.log('Is authenticated:', isAuthenticated());
-  }, [isAuthenticated]);
+    const sessionData = localStorage.getItem('user');
+    if (sessionData) {
+      const parsedData = JSON.parse(sessionData);
+      setAuthenticated(true);
+      setUsername(parsedData.username || '');
+    } else {
+      setAuthenticated(false);
+    }
+  }, []);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -39,10 +53,20 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
-      navigate("/");
+      const status = await logout();      
+      if (status === 200) {
+        localStorage.removeItem('user'); // Remove cached user data
+        setAuthenticated(false); // Update state to reflect user is logged out
+        setUsername(''); // Clear the username state
+        navigate('/'); // Redirect the user to the home page
+      } else {
+        // Handle any unexpected status codes (this should be covered in the logout function)
+        console.error('Failed to log out.');
+      }
     } catch (error) {
+      // Error handling if the logout fails
       console.error('Error logging out:', error);
+      // Display an error message or take appropriate action
     }
   };
 
@@ -58,24 +82,24 @@ const Navbar = () => {
       onKeyDown={(event) => event.stopPropagation()}
     >
       <List>
-        {!isAuthenticated() ? (
+        {!authenticated ? (
           <>
-            <ListItem component={NavLink} to="/login">
+            <ListItem component={NavLink} to="/login" onClick={handleDrawerToggle}>
               <LoginIcon sx={{ mr: 1, color: "black" }} />
               <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Login" />
             </ListItem>
-            <ListItem component={NavLink} to="/register">
+            <ListItem component={NavLink} to="/register" onClick={handleDrawerToggle}>
               <HowToRegIcon sx={{ mr: 1, color: "black" }} />
               <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Register" />
             </ListItem>
           </>
         ) : (
           <>
-            <ListItem onClick={showProfile}>
+            <ListItem onClick={() => { showProfile(); handleDrawerToggle(); }}>
               <AccountCircleIcon sx={{ mr: 1, color: "black" }} />
-              <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Profile" />
+              <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary={`${username}`} />
             </ListItem>
-            <ListItem onClick={handleLogout}>
+            <ListItem onClick={() => { handleLogout(); handleDrawerToggle(); }}>
               <PersonIcon sx={{ mr: 1, color: "black" }} />
               <ListItemText primaryTypographyProps={{ sx: { color: 'black' } }} primary="Logout" />
             </ListItem>
@@ -85,47 +109,51 @@ const Navbar = () => {
     </Box>
   );
 
-  return (    
+  return (
     <AppBar position="fixed" className="navbar" color="default">
       <Container>
         <Toolbar disableGutters>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2, display: { xs: 'block', md: 'none' } }}
-            onClick={handleDrawerToggle}
-          >
-            <MenuIcon />
-          </IconButton>
+          {isMobile && (
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ mr: 2 }}
+              onClick={handleDrawerToggle}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
           <Typography variant="h5" component={NavLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
             BingeQuest
           </Typography>
-          <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end' }}>
-            {!isAuthenticated() ? (
-              <>
-                <Button color="inherit" component={NavLink} to="/login">
-                  <LoginIcon sx={{ mr: 1 }} />
-                  Login
-                </Button>
-                <Button color="inherit" component={NavLink} to="/register">
-                  <HowToRegIcon sx={{ mr: 1 }} />
-                  Register
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button color="inherit" onClick={showProfile}>
-                  <AccountCircleIcon sx={{ mr: 1 }} />
-                  Profile
-                </Button>
-                <Button color="inherit" onClick={handleLogout}>
-                  <PersonIcon sx={{ mr: 1 }} />
-                  Logout
-                </Button>
-              </>
-            )}
-          </Box>
+          {!isMobile ? (
+            <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end' }}>
+              {!authenticated ? (
+                <>
+                  <Button color="inherit" component={NavLink} to="/login">
+                    <LoginIcon sx={{ mr: 1 }} />
+                    Login
+                  </Button>
+                  <Button color="inherit" component={NavLink} to="/register">
+                    <HowToRegIcon sx={{ mr: 1 }} />
+                    Register
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button color="inherit" onClick={showProfile}>
+                    <AccountCircleIcon sx={{ mr: 1 }} />
+                    {username}
+                  </Button>
+                  <Button color="inherit" onClick={handleLogout}>
+                    <PersonIcon sx={{ mr: 1 }} />
+                    Logout
+                  </Button>
+                </>
+              )}
+            </Box>
+          ) : null}
         </Toolbar>
       </Container>
       <Drawer

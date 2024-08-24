@@ -1,5 +1,5 @@
-from flask import jsonify, request, make_response, session
-from flask_login import login_user, logout_user, login_required
+from flask import jsonify, request, make_response
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login_manager
@@ -11,10 +11,12 @@ def load_user(user_id):
     user = db.get_or_404(User, user_id)
     return user
 
-@bp.route('/protected', methods=['GET'])
-@login_required
-def protected_route():
-    return jsonify({"message": "You are logged in!"}), 200
+@bp.route('/check-session', methods=['GET'])
+def check_session():
+    if current_user.is_authenticated:
+        return jsonify({"message": "Session is active", "username": current_user.username}), 200
+    else:
+        return jsonify({"message": "No active session"}), 401
 
 @bp.route('/register', methods=['POST'])
 def register():
@@ -47,6 +49,7 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
+        login_user(new_user, remember=True)
     except Exception as e:
         print(f"Error during registration: {e}")
         return jsonify({"message": "Server error during registration"}), 500
@@ -71,12 +74,14 @@ def login():
         user = result.scalar()
     except Exception as e:
         return jsonify({"message": "An error occurred while fetching the user", "error": str(e)}), 500
-
-    if not user or not check_password_hash(user.password, password):        
-        return jsonify({"message": "Invalid email or password"}), 401
     
-    login_user(user)
-    session.permanent = True  # Mark the session as permanent
+    if not user:
+        return jsonify({"message": "User does not exist"}), 401
+
+    if not check_password_hash(user.password, password):        
+        return jsonify({"message": "Invalid password"}), 401
+    
+    login_user(user, remember=True)
 
     response = jsonify({"message": "Login successful", "username": user.username})
     return response, 200
@@ -84,8 +89,6 @@ def login():
 @bp.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    session.clear()
-
-    response = make_response(jsonify({'message': 'Logged out successfully'}), 200)
-    return response
+    logout_user()    
+    response = make_response(jsonify({'message': 'Logged out successfully'}))
+    return response, 200

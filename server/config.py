@@ -15,8 +15,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Session settings    
-    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_SECURE = True  # Set to True in production with HTTPS
     PERMANENT_SESSION_LIFETIME = timedelta(days=30)  # Set session lifetime to 1 minute
+    SESSION_COOKIE_SAMESITE = 'None'  # Allow cookies to be sent with cross-site requests
     REMEMBER_COOKIE_SECURE = True  # Only send cookies over HTTPS
     REMEMBER_COOKIE_HTTPONLY = True  # JavaScript cannot access the cookie
     REMEMBER_COOKIE_DURATION = timedelta(days=30)  # Set remember me cookie duration to 1 minute

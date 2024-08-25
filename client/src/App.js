@@ -1,3 +1,4 @@
+// client/src/App.js
 import React, { memo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 

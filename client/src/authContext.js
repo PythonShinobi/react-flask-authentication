@@ -43,7 +43,8 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 200) {
         const { session_id, username } = response.data;
         setUser({ username });
-        localStorage.setItem('session_id', session_id); // Cache session ID        
+        localStorage.setItem('session_id', session_id); // Cache session ID
+        localStorage.setItem('username', username); // Cache session ID
         setErr(""); // Clear any previous errors
         return response.status; // Return the status code
       } else {
@@ -63,7 +64,8 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 201) {
         const { session_id, username } = response.data;
         setUser({ username });
-        localStorage.setItem('session_id', session_id); // Cache session ID        
+        localStorage.setItem('session_id', session_id); // Cache session ID
+        localStorage.setItem('username', username); // Cache session ID
         setErr(""); // Clear any previous errors
         return response.status; // Return the status code
       } else {

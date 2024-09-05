@@ -125,7 +125,7 @@ const Navbar = () => {
             </IconButton>
           )}
           <Typography variant="h5" component={NavLink} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-            BingeQuest
+            Authentication
           </Typography>
           {!isMobile ? (
             <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end' }}>

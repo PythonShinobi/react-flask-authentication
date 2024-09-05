@@ -41,8 +41,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiClient.post('/api/login', { username, password });
       if (response.status === 200) {
-        setUser(response.data);
-        localStorage.setItem('user', JSON.stringify(response.data)); // Cache user data
+        const { session_id, username } = response.data;
+        setUser({ username });
+        localStorage.setItem('session_id', session_id); // Cache session ID        
         setErr(""); // Clear any previous errors
         return response.status; // Return the status code
       } else {
@@ -60,8 +61,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await apiClient.post('/api/register', { username, email, password });
       if (response.status === 201) {
-        setUser(response.data);
-        localStorage.setItem('user', JSON.stringify(response.data)); // Cache user data
+        const { session_id, username } = response.data;
+        setUser({ username });
+        localStorage.setItem('session_id', session_id); // Cache session ID        
         setErr(""); // Clear any previous errors
         return response.status; // Return the status code
       } else {

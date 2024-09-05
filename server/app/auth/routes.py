@@ -1,10 +1,16 @@
-from flask import jsonify, request, make_response
+import secrets
+from flask import jsonify, request, make_response, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login_manager
 from app.auth import bp
 from app.models import User
+
+def generate_secure_session_id():
+    # Generate a 64-bit (16-byte) random session ID
+    token = secrets.token_hex(16)
+    return token
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -49,13 +55,17 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
+
         login_user(new_user, remember=True)
+
+        # Generate a secure session ID and store session details on the server side
+        session['session_id'] = generate_secure_session_id()
+
+        response = make_response(jsonify({"message": "Registration successful✅", "username": new_user.username}))
+        return response, 201
     except Exception as e:
         print(f"Error during registration: {e}")
-        return jsonify({"message": "Server error during registration"}), 500
-
-    response = make_response(jsonify({"message": "Registration successful✅", "username": new_user.username}))
-    return response, 201
+        return jsonify({"message": "Server error during registration"}), 500    
 
 @bp.route('/login', methods=['POST'])
 def login():
@@ -83,12 +93,19 @@ def login():
     
     login_user(user, remember=True)
 
+    # Generate a secure session ID for this user and store session details on the server
+    session['session_id'] = generate_secure_session_id()
+
     response = jsonify({"message": "Login successful", "username": user.username})
     return response, 200
 
 @bp.route('/logout')
 @login_required
 def logout():
-    logout_user()    
+    logout_user()
+
+    # Clear the session ID on logout
+    session.pop('session_id', None)
+
     response = make_response(jsonify({'message': 'Logged out successfully'}))
     return response, 200

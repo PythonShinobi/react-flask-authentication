@@ -37,7 +37,7 @@ const Navbar = () => {
 
   // Check local storage for user session
   useEffect(() => {
-    const sessionData = localStorage.getItem('session_id');
+    const sessionData = localStorage.getItem('user');
     if (sessionData) {
       const parsedData = JSON.parse(sessionData);
       setAuthenticated(true);
@@ -55,7 +55,7 @@ const Navbar = () => {
     try {
       const status = await logout();      
       if (status === 200) {
-        localStorage.removeItem('session_id'); // Remove cached user data
+        localStorage.removeItem('user'); // Remove cached user data
         setAuthenticated(false); // Update state to reflect user is logged out
         setUsername(''); // Clear the username state
         navigate('/'); // Redirect the user to the home page

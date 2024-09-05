@@ -59,9 +59,10 @@ def register():
         login_user(new_user, remember=True)
 
         # Generate a secure session ID and store session details on the server side
-        session['session_id'] = generate_secure_session_id()
+        session_id = generate_secure_session_id()
+        session['session_id'] = session_id
 
-        response = make_response(jsonify({"message": "Registration successful✅", "username": new_user.username}))
+        response = make_response(jsonify({"session_id": session_id, "username": new_user.username}))
         return response, 201
     except Exception as e:
         print(f"Error during registration: {e}")
@@ -94,9 +95,10 @@ def login():
     login_user(user, remember=True)
 
     # Generate a secure session ID for this user and store session details on the server
-    session['session_id'] = generate_secure_session_id()
+    session_id = generate_secure_session_id()
+    session['session_id'] = session_id
 
-    response = jsonify({"message": "Login successful", "username": user.username})
+    response = jsonify({"session_id": session_id, "username": user.username})
     return response, 200
 
 @bp.route('/logout')
